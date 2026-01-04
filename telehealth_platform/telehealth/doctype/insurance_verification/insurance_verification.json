@@ -1,0 +1,142 @@
+{
+    "actions": [],
+    "allow_rename": 1,
+    "creation": "2026-01-03 22:40:00.000000",
+    "doctype": "DocType",
+    "editable_grid": 1,
+    "engine": "InnoDB",
+    "field_order": [
+        "patient",
+        "status",
+        "verification_date",
+        "section_break_1",
+        "front_image",
+        "back_image",
+        "section_break_2",
+        "provider_name",
+        "policy_number",
+        "group_number",
+        "plan_type",
+        "effective_date",
+        "expiry_date",
+        "subscriber_name",
+        "rejection_reason"
+    ],
+    "fields": [
+        {
+            "fieldname": "patient",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "Patient",
+            "options": "Patient",
+            "reqd": 1
+        },
+        {
+            "fieldname": "status",
+            "fieldtype": "Select",
+            "in_list_view": 1,
+            "label": "Status",
+            "options": "Pending\nVerified\nRejected\nExpired",
+            "default": "Pending"
+        },
+        {
+            "fieldname": "verification_date",
+            "fieldtype": "Datetime",
+            "label": "Verification Date"
+        },
+        {
+            "fieldname": "section_break_1",
+            "fieldtype": "Section Break",
+            "label": "Images"
+        },
+        {
+            "fieldname": "front_image",
+            "fieldtype": "Attach Image",
+            "label": "Front Image"
+        },
+        {
+            "fieldname": "back_image",
+            "fieldtype": "Attach Image",
+            "label": "Back Image"
+        },
+        {
+            "fieldname": "section_break_2",
+            "fieldtype": "Section Break",
+            "label": "Extracted Details"
+        },
+        {
+            "fieldname": "provider_name",
+            "fieldtype": "Data",
+            "label": "Provider Name"
+        },
+        {
+            "fieldname": "policy_number",
+            "fieldtype": "Data",
+            "label": "Policy Number"
+        },
+        {
+            "fieldname": "group_number",
+            "fieldtype": "Data",
+            "label": "Group Number"
+        },
+        {
+            "fieldname": "plan_type",
+            "fieldtype": "Data",
+            "label": "Plan Type"
+        },
+        {
+            "fieldname": "effective_date",
+            "fieldtype": "Date",
+            "label": "Effective Date"
+        },
+        {
+            "fieldname": "expiry_date",
+            "fieldtype": "Date",
+            "label": "Expiry Date"
+        },
+        {
+            "fieldname": "subscriber_name",
+            "fieldtype": "Data",
+            "label": "Subscriber Name"
+        },
+        {
+            "fieldname": "rejection_reason",
+            "fieldtype": "Small Text",
+            "label": "Rejection Reason"
+        }
+    ],
+    "index_web_pages_for_search": 1,
+    "links": [],
+    "modified": "2026-01-03 22:40:00.000000",
+    "modified_by": "Administrator",
+    "module": "Telehealth",
+    "name": "Insurance Verification",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "System Manager",
+            "share": 1,
+            "write": 1
+        },
+        {
+            "create": 1,
+            "read": 1,
+            "role": "Patient",
+            "write": 1
+        },
+        {
+            "read": 1,
+            "role": "Healthcare Practitioner"
+        }
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": []
+}

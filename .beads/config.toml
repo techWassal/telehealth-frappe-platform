@@ -1,0 +1,18 @@
+[project]
+name = "Telehealth Backend"
+role = "implementation"
+
+[upstream]
+workspace = "contracts"
+path = "../telehealth-core-contracts"
+
+[metadata_schema]
+required_fields = [
+  "upstream_contract_id",
+  "tdd_file",
+  "module",
+  "api_contract_path"
+]
+
+[governance]
+enforce_contract_reference = true

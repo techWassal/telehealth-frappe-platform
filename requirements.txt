@@ -1,0 +1,7 @@
+frappe
+livekit
+openai
+anthropic
+python-jose[cryptography]
+stripe
+boto3

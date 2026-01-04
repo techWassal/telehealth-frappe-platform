@@ -1,0 +1,13 @@
+include MANIFEST.in
+include requirements.txt
+include *.py
+include *.md
+include *.txt
+recursive-include telehealth_platform *.py
+recursive-include telehealth_platform *.html
+recursive-include telehealth_platform *.js
+recursive-include telehealth_platform *.css
+recursive-include telehealth_platform *.png
+recursive-include telehealth_platform *.jpg
+recursive-include telehealth_platform *.svg
+recursive-include telehealth_platform *.json

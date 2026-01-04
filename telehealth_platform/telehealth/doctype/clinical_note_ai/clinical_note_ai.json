@@ -1,0 +1,96 @@
+{
+    "actions": [],
+    "allow_rename": 1,
+    "creation": "2026-01-03 22:32:00.000000",
+    "doctype": "DocType",
+    "editable_grid": 1,
+    "engine": "InnoDB",
+    "field_order": [
+        "video_session",
+        "status",
+        "ai_confidence",
+        "section_break_soap",
+        "subjective",
+        "objective",
+        "assessment",
+        "plan"
+    ],
+    "fields": [
+        {
+            "fieldname": "video_session",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "Video Session",
+            "options": "Telehealth Video Session",
+            "reqd": 1
+        },
+        {
+            "fieldname": "status",
+            "fieldtype": "Select",
+            "in_list_view": 1,
+            "label": "Status",
+            "options": "Draft\nFinalized",
+            "default": "Draft"
+        },
+        {
+            "fieldname": "ai_confidence",
+            "fieldtype": "Float",
+            "label": "AI Confidence"
+        },
+        {
+            "fieldname": "section_break_soap",
+            "fieldtype": "Section Break",
+            "label": "SOAP Note"
+        },
+        {
+            "fieldname": "subjective",
+            "fieldtype": "Text Editor",
+            "label": "Subjective"
+        },
+        {
+            "fieldname": "objective",
+            "fieldtype": "Text Editor",
+            "label": "Objective"
+        },
+        {
+            "fieldname": "assessment",
+            "fieldtype": "Text Editor",
+            "label": "Assessment"
+        },
+        {
+            "fieldname": "plan",
+            "fieldtype": "Text Editor",
+            "label": "Plan"
+        }
+    ],
+    "index_web_pages_for_search": 1,
+    "links": [],
+    "modified": "2026-01-03 22:32:00.000000",
+    "modified_by": "Administrator",
+    "module": "Telehealth",
+    "name": "Clinical Note AI",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "System Manager",
+            "share": 1,
+            "write": 1
+        },
+        {
+            "create": 1,
+            "read": 1,
+            "role": "Healthcare Practitioner",
+            "write": 1
+        }
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": []
+}

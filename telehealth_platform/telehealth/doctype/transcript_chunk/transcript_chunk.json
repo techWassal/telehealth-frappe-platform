@@ -1,0 +1,76 @@
+{
+    "actions": [],
+    "allow_rename": 1,
+    "creation": "2026-01-03 22:31:00.000000",
+    "doctype": "DocType",
+    "editable_grid": 1,
+    "engine": "InnoDB",
+    "field_order": [
+        "video_session",
+        "speaker",
+        "timestamp",
+        "is_final",
+        "text"
+    ],
+    "fields": [
+        {
+            "fieldname": "video_session",
+            "fieldtype": "Link",
+            "in_list_view": 1,
+            "label": "Video Session",
+            "options": "Telehealth Video Session",
+            "reqd": 1
+        },
+        {
+            "fieldname": "speaker",
+            "fieldtype": "Select",
+            "in_list_view": 1,
+            "label": "Speaker",
+            "options": "Patient\nDoctor\nAI"
+        },
+        {
+            "fieldname": "timestamp",
+            "fieldtype": "Datetime",
+            "label": "Timestamp"
+        },
+        {
+            "fieldname": "is_final",
+            "fieldtype": "Check",
+            "label": "Is Final"
+        },
+        {
+            "fieldname": "text",
+            "fieldtype": "Text Editor",
+            "label": "Text",
+            "reqd": 1
+        }
+    ],
+    "index_web_pages_for_search": 1,
+    "links": [],
+    "modified": "2026-01-03 22:31:00.000000",
+    "modified_by": "Administrator",
+    "module": "Telehealth",
+    "name": "Transcript Chunk",
+    "owner": "Administrator",
+    "permissions": [
+        {
+            "create": 1,
+            "delete": 1,
+            "email": 1,
+            "export": 1,
+            "print": 1,
+            "read": 1,
+            "report": 1,
+            "role": "System Manager",
+            "share": 1,
+            "write": 1
+        },
+        {
+            "read": 1,
+            "role": "Healthcare Practitioner"
+        }
+    ],
+    "sort_field": "modified",
+    "sort_order": "DESC",
+    "states": []
+}
