@@ -165,3 +165,7 @@ scheduler_events = {
 # auth_hooks = [
 # 	"telehealth_platform.auth.validate"
 # ]
+
+website_route_rules = [
+    {"from_route": "/api/v1/<path:path>", "to_route": "telehealth_platform.telehealth.api.router"},
+]

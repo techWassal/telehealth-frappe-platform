@@ -21,6 +21,8 @@ def register(patient_name, email, phone, date_of_birth, password, gender=None, a
             "first_name": patient_name,
             "new_password": password,
             "enabled": 1,
+            "user_type": "Website User",
+            "send_welcome_email": 0,
             "roles": [{"role": "Patient"}]
         })
         user.insert(ignore_permissions=True)
