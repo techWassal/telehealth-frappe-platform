@@ -3,8 +3,13 @@ from frappe import _
 from frappe.utils import getdate
 
 @frappe.whitelist(allow_guest=True)
-def get_patient_fields():
-    return [f.fieldname for f in frappe.get_meta("Patient").fields]
+def debug_patient():
+    meta = frappe.get_meta("Patient")
+    return {
+        "fields": [{"fieldname": f.fieldname, "label": f.label, "reqd": f.reqd} for f in meta.fields],
+        "naming_rule": meta.naming_rule,
+        "autoname": meta.autoname
+    }
 
 @frappe.whitelist(allow_guest=True)
 def register(patient_name, email, phone, date_of_birth, password, gender=None, address=None, emergency_contact=None):
