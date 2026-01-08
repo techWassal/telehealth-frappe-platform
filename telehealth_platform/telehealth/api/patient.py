@@ -53,41 +53,42 @@ def register(patient_name, email, phone, date_of_birth, password, gender=None, a
         f_name = names[0]
         l_name = names[1] if len(names) > 1 else ""
 
-        patient = frappe.new_doc("Patient")
-        patient.update({
-            "first_name": f_name,
-            "last_name": l_name,
-            "patient_name": patient_name,
-            "email": email,
-            "mobile": phone,
-            "dob": getdate(date_of_birth),
-            "sex": gender or "Other",
-            "user_id": user.name,
-            "customer": customer.name
-        })
-        
         try:
+            patient = frappe.get_doc({
+                "doctype": "Patient",
+                "first_name": f_name,
+                "last_name": l_name,
+                "patient_name": patient_name,
+                "email": email,
+                "mobile": phone,
+                "dob": getdate(date_of_birth),
+                "sex": gender or "Other",
+                "user_id": user.name,
+                "customer": customer.name
+            })
             patient.insert(ignore_permissions=True)
+            frappe.db.commit()
+            
+            frappe.local.response.http_status_code = 201
+            return get_patient_profile_data(patient)
+
         except Exception as e:
-            # Return full patient dict to see what's actually in there
+            frappe.db.rollback()
+            # Return exhaustive debug info
+            meta = frappe.get_meta("Patient")
             return {
                 "error": "Detailed Insert Error",
                 "message": str(e),
-                "debug_fields": patient.as_dict(),
-                "all_meta_fields": [f.fieldname for f in frappe.get_meta("Patient").fields if f.reqd]
+                "fields_sent": {
+                    "first_name": f_name,
+                    "last_name": l_name,
+                    "patient_name": patient_name,
+                    "email": email,
+                    "sex": gender or "Other"
+                },
+                "mandatory_fields": [f.fieldname for f in meta.fields if f.reqd]
             }
 
-        frappe.db.commit()
-
-        frappe.local.response.http_status_code = 201
-        return get_patient_profile_data(patient)
-
-    except frappe.MandatoryError as e:
-        frappe.db.rollback()
-        # Log specifically what's missing
-        frappe.log_error(f"Registration Mandatory Error: {str(e)}", "Auth")
-        frappe.local.response.http_status_code = 400
-        return {"error": "Validation Error", "message": f"Missing mandatory field: {str(e)}"}
     except Exception as e:
         frappe.db.rollback()
         frappe.local.response.http_status_code = 500
