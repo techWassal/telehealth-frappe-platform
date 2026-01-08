@@ -49,15 +49,27 @@ def register(patient_name, email, phone, date_of_birth, password, gender=None, a
         customer.insert(ignore_permissions=True)
 
         # 3. Create Patient
-        try:
-            p = frappe.new_doc("Patient")
-            return {
-                "error": "Inspection Mode",
-                "fields": list(p.as_dict().keys()),
-                "meta_fields": [f.fieldname for f in frappe.get_meta("Patient").fields]
-            }
-        except Exception as e:
-            return {"error": "Meta fail", "message": str(e)}
+        names = patient_name.split(" ", 1)
+        first_name = names[0]
+        last_name = names[1] if len(names) > 1 else ""
+
+        patient = frappe.get_doc({
+            "doctype": "Patient",
+            "first_name": first_name,
+            "last_name": last_name,
+            "patient_name": patient_name,
+            "email": email,
+            "mobile": phone,
+            "dob": getdate(date_of_birth),
+            "sex": gender or "Other",
+            "user_id": user.name,
+            "customer": customer.name
+        })
+        patient.insert(ignore_permissions=True)
+        frappe.db.commit()
+
+        frappe.local.response.http_status_code = 201
+        return get_patient_profile_data(patient)
 
     except Exception as e:
         frappe.db.rollback()
