@@ -3,6 +3,10 @@ from frappe import _
 from frappe.utils import getdate
 
 @frappe.whitelist(allow_guest=True)
+def get_patient_fields():
+    return [f.fieldname for f in frappe.get_meta("Patient").fields]
+
+@frappe.whitelist(allow_guest=True)
 def register(patient_name, email, phone, date_of_birth, password, gender=None, address=None, emergency_contact=None):
     """
     Registers a new patient. 
@@ -27,26 +31,58 @@ def register(patient_name, email, phone, date_of_birth, password, gender=None, a
         })
         user.insert(ignore_permissions=True)
 
-        # 2. Create Patient
-        patient = frappe.get_doc({
-            "doctype": "Patient",
+        # 2. Create Customer (Required for transactions in ERPNext)
+        customer = frappe.get_doc({
+            "doctype": "Customer",
+            "customer_name": patient_name,
+            "customer_type": "Individual",
+            "customer_group": _("All Customer Groups"),
+            "territory": _("All Territories"),
+            "email_id": email,
+            "mobile_no": phone
+        })
+        customer.insert(ignore_permissions=True)
+
+        # 3. Create Patient
+        names = patient_name.split(" ", 1)
+        f_name = names[0]
+        l_name = names[1] if len(names) > 1 else ""
+
+        patient = frappe.new_doc("Patient")
+        patient.update({
+            "first_name": f_name,
+            "last_name": l_name,
             "patient_name": patient_name,
             "email": email,
             "mobile": phone,
             "dob": getdate(date_of_birth),
-            "sex": gender,
-            "user_id": user.name
+            "sex": gender or "Other",
+            "user_id": user.name,
+            "customer": customer.name
         })
         
-        # Add address if provided (might need more logic depending on setup)
-        # For now, storing in a custom field or comment if necessary
-        
-        patient.insert(ignore_permissions=True)
+        try:
+            patient.insert(ignore_permissions=True)
+        except Exception as e:
+            # Return full patient dict to see what's actually in there
+            return {
+                "error": "Detailed Insert Error",
+                "message": str(e),
+                "debug_fields": patient.as_dict(),
+                "all_meta_fields": [f.fieldname for f in frappe.get_meta("Patient").fields if f.reqd]
+            }
+
         frappe.db.commit()
 
         frappe.local.response.http_status_code = 201
         return get_patient_profile_data(patient)
 
+    except frappe.MandatoryError as e:
+        frappe.db.rollback()
+        # Log specifically what's missing
+        frappe.log_error(f"Registration Mandatory Error: {str(e)}", "Auth")
+        frappe.local.response.http_status_code = 400
+        return {"error": "Validation Error", "message": f"Missing mandatory field: {str(e)}"}
     except Exception as e:
         frappe.db.rollback()
         frappe.local.response.http_status_code = 500

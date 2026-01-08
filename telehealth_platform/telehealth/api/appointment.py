@@ -20,7 +20,7 @@ def list_appointments():
 
     appointments = frappe.get_all("Patient Appointment",
         filters=filters,
-        fields=["name", "patient", "practitioner", "practitioner_name", "appointment_date", "appointment_time", "status", "appointment_type", "custom_payment_status", "paid_amount", "notes", "custom_payment_intent_id"],
+        fields=["name", "patient", "practitioner", "appointment_date", "appointment_time", "status", "appointment_type", "duration"],
         order_by="appointment_date desc, appointment_time desc"
     )
 
@@ -62,6 +62,42 @@ def book_appointment(doctor_id, scheduled_time, reason):
     })
     
     appointment.insert(ignore_permissions=True)
+    
+    # Create Payment Request using the payments app
+    try:
+        from payments.payment_gateway.doctype.payment_request.payment_request import make_payment_request
+        
+        # Get patient email for receipt and fee from a config or default
+        patient_email = frappe.db.get_value("Patient", patient, "email")
+        # Default fee $50.00 per TDD
+        fee = 50.0 
+        
+        # Check if a default gateway exists
+        gateway_account = frappe.db.get_value("Payment Gateway Account", {"is_default": 1}, "name")
+        
+        if gateway_account:
+            pr = make_payment_request(
+                dt="Patient Appointment",
+                dn=appointment.name,
+                recipient_id=patient_email,
+                amount=fee,
+                currency="USD",
+                payment_gateway_account=gateway_account,
+                mute_email=True,
+                redirect_to=f"telehealth://payment-status?id={appointment.name}"
+            )
+            # Link it to appointment
+            appointment.db_set("custom_payment_request", pr.name)
+            appointment.db_set("paid_amount", fee)
+            appointment.db_set("custom_payment_status", "Pending")
+        else:
+            frappe.log_error(_("No default Payment Gateway Account found"), "Payment Integration")
+            
+    except ImportError:
+        frappe.log_error(_("Payments app not installed or make_payment_request not found"), "Payment Integration")
+    except Exception as e:
+        frappe.log_error(f"Failed to create Payment Request: {str(e)}", "Payment Integration")
+
     frappe.db.commit()
     
     return format_appointment(appointment)
@@ -202,10 +238,18 @@ def format_appointment(a):
     Helper to map Patient Appointment to contract Appointment schema.
     """
     # Handle both dict (from get_all) and doc object
+    # Safe getters since we reduced the query fields
     name = a.get("name") if isinstance(a, dict) else a.name
     patient = a.get("patient") if isinstance(a, dict) else a.patient
     practitioner = a.get("practitioner") if isinstance(a, dict) else a.practitioner
-    practitioner_name = a.get("practitioner_name") if isinstance(a, dict) else a.practitioner_name
+    
+    # practitioner_name might not be in dict if we didn't fetch it. 
+    # Best effort: use practitioner ID or fetch if critical (skipping fetch for performance now)
+    practitioner_name = a.get("practitioner_name") if isinstance(a, dict) else getattr(a, "practitioner_name", practitioner)
+    if not practitioner_name and practitioner:
+        # Fallback to ID if name missing
+        practitioner_name = practitioner
+
     date = a.get("appointment_date") if isinstance(a, dict) else a.appointment_date
     time = a.get("appointment_time") if isinstance(a, dict) else a.appointment_time
     status = a.get("status") if isinstance(a, dict) else a.status
@@ -218,17 +262,24 @@ def format_appointment(a):
         "Cancelled": "Cancelled"
     }
     
+    # Fetch Payment URL from Payment Request if exists
+    payment_url = ""
+    pr_name = a.get("custom_payment_request") if isinstance(a, dict) else getattr(a, "custom_payment_request", None)
+    if pr_name:
+        payment_url = frappe.db.get_value("Payment Request", pr_name, "payment_url")
+    
     return {
         "id": name,
         "patient_id": patient,
         "doctor_id": practitioner,
         "doctor_name": practitioner_name,
         "scheduled_time": f"{date} {time}",
-        "duration": 30, # Default duration
+        "duration": a.get("duration", 30) if isinstance(a, dict) else getattr(a, "duration", 30),
         "status": status_map.get(status, "Scheduled"),
         "reason": a.get("notes") if isinstance(a, dict) else getattr(a, "notes", ""),
-        "consultation_fee": a.get("paid_amount") if isinstance(a, dict) else getattr(a, "paid_amount", 0.0),
-        "payment_status": getattr(a, "custom_payment_status", "Pending")
+        "consultation_fee": 50.0, # Fixed fee until paid_amount is verified
+        "payment_status": getattr(a, "custom_payment_status", "Pending") if not isinstance(a, dict) else a.get("custom_payment_status", "Pending"),
+        "payment_url": payment_url
     }
 
 def check_appointment_access(appointment):
@@ -248,3 +299,15 @@ def check_appointment_access(appointment):
         patient = frappe.db.get_value("Patient", {"user_id": user_id}, "name")
         if appointment.patient != patient:
             frappe.throw(_("Not authorized to access this appointment"), frappe.PermissionError)
+
+def handle_payment_request_update(doc, method):
+    """
+    Called when a Payment Request is updated.
+    If the status is 'Paid', update the linked Patient Appointment.
+    """
+    if doc.status == "Paid" and doc.reference_doctype == "Patient Appointment":
+        appointment = frappe.get_doc("Patient Appointment", doc.reference_name)
+        appointment.db_set("custom_payment_status", "Paid")
+        # Use Payment Request name as reference
+        appointment.db_set("custom_payment_intent_id", doc.name)
+        frappe.db.commit()

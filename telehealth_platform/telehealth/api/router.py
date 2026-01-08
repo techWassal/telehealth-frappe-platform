@@ -35,6 +35,7 @@ ROUTES = {
     ("POST", "transcription/chunk"): "telehealth_platform.telehealth.api.ai.submit_chunk",
     ("GET", "clinical-notes"): "telehealth_platform.telehealth.api.ai.get_clinical_notes",
     ("PUT", "clinical-notes"): "telehealth_platform.telehealth.api.ai.update_clinical_notes",
+    ("POST", "clinical-notes/finalize"): "telehealth_platform.telehealth.api.ai.finalize_notes",
     
     # Missing Routes Added
     ("POST", "auth/2fa/verify"): "telehealth_platform.telehealth.api.auth.verify_2fa",
@@ -69,9 +70,13 @@ def handle(path):
             if method == "GET" and len(parts) == 3 and parts[0] == "video-session" and parts[2] == "token":
                 func_name = ROUTES.get(("GET", "video-session/token"))
                 frappe.form_dict["id"] = parts[1]
-            elif method == "POST" and len(parts) == 3 and parts[0] == "clinical-notes":
-                # AI agent sends session_id as part of path usually, or it might be update
+            elif method == "PUT" and len(parts) == 2 and parts[0] == "clinical-notes":
+                # PUT /clinical-notes/{id}
                 func_name = ROUTES.get(("PUT", "clinical-notes"))
+                frappe.form_dict["session_id"] = parts[1]
+            elif method == "POST" and len(parts) == 3 and parts[0] == "clinical-notes" and parts[2] == "finalize":
+                # POST /clinical-notes/{id}/finalize
+                func_name = ROUTES.get(("POST", "clinical-notes/finalize"))
                 frappe.form_dict["session_id"] = parts[1]
             elif method == "GET" and parts[0] == "clinical-notes" and len(parts) == 2:
                 func_name = ROUTES.get(("GET", "clinical-notes"))
@@ -95,4 +100,6 @@ def handle(path):
         return {"error": "Not Found", "message": f"Route {method} {path} not found"}
 
     # Execute the whitelisted method
-    return frappe.call(func_name, **frappe.form_dict)
+    args = frappe.form_dict.copy()
+    args.pop("path", None)
+    return frappe.call(func_name, **args)

@@ -47,6 +47,10 @@ def get_clinical_notes(session_id):
     """
     Retrieves clinical notes for a session.
     """
+    # Resolve session ID if appointment ID is passed
+    if frappe.db.exists("Telehealth Video Session", {"appointment": session_id}):
+         session_id = frappe.db.get_value("Telehealth Video Session", {"appointment": session_id}, "name")
+
     note_name = frappe.db.get_value("Clinical Note AI", {"video_session": session_id}, "name")
     if not note_name:
         frappe.local.response.http_status_code = 404
@@ -69,6 +73,10 @@ def update_clinical_notes(session_id, subjective=None, objective=None, assessmen
     """
     Updates draft clinical notes.
     """
+    # Resolve session ID if appointment ID is passed
+    if frappe.db.exists("Telehealth Video Session", {"appointment": session_id}):
+         session_id = frappe.db.get_value("Telehealth Video Session", {"appointment": session_id}, "name")
+
     note_name = frappe.db.get_value("Clinical Note AI", {"video_session": session_id}, "name")
     if not note_name:
         # Create if doesn't exist
@@ -98,6 +106,10 @@ def finalize_notes(session_id):
     """
     Finalizes clinical notes.
     """
+    # Resolve session ID if appointment ID is passed
+    if frappe.db.exists("Telehealth Video Session", {"appointment": session_id}):
+         session_id = frappe.db.get_value("Telehealth Video Session", {"appointment": session_id}, "name")
+
     note_name = frappe.db.get_value("Clinical Note AI", {"video_session": session_id}, "name")
     if not note_name:
         frappe.local.response.http_status_code = 404
