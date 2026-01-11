@@ -49,6 +49,16 @@ ROUTES = {
     ("PUT", "insurance/verification"): "telehealth_platform.telehealth.api.insurance.update_details",
     
     ("GET", "admin/audit-logs"): "telehealth_platform.telehealth.api.audit.search_logs",
+
+    # Prescriptions (Medication Request)
+    ("POST", "prescriptions"): "telehealth_platform.telehealth.api.prescription.create_medication_request",
+    ("GET", "prescriptions/active"): "telehealth_platform.telehealth.api.prescription.list_active_medications",
+    ("GET", "prescriptions/search"): "telehealth_platform.telehealth.api.prescription.search_medications",
+    ("GET", "prescriptions/check-allergies"): "telehealth_platform.telehealth.api.prescription.check_allergies",
+
+    # Service Requests (Labs/Referrals)
+    ("POST", "service-requests"): "telehealth_platform.telehealth.api.service_request.create_service_request",
+    ("GET", "service-requests/search"): "telehealth_platform.telehealth.api.service_request.search_service_templates",
 }
 
 @frappe.whitelist(allow_guest=True)
